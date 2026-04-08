@@ -21,7 +21,4 @@ app.use(shopRoutes);
 
 app.use(errorController.get404);
 
-// 404 page doesn't work!
-
-
 app.listen(3000);
