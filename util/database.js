@@ -3,7 +3,8 @@ const MongoClient = mongodb.MongoClient;
 
 let _db; 
 const uri =
-  "###";
+  "###"
+;
 
 const mongoConnect = (callback) => {
   MongoClient.connect(uri)
