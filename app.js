@@ -9,7 +9,8 @@ const MongoStore = require("connect-mongo").default;
 const errorController = require("./controllers/error");
 const User = require("./models/user");
 
-const MONGODB_URI = "$$$";
+const MONGODB_URI =
+  "$$$";
 
 const app = express();
 
@@ -30,9 +31,22 @@ app.use(
     store: MongoStore.create({
       mongoUrl: MONGODB_URI,
       dbName: "shop",
+      collectionName: "sessions",
     }),
   }),
 );
+
+app.use((req, res, next) => {
+  if(!req.session.user) {
+    return next();
+  }
+  User.findById(req.session.user._id)
+    .then((user) => {
+      req.user = user;
+      next();
+    })
+    .catch((err) => console.log(err));
+});
 
 app.use("/admin", adminRoutes);
 app.use(shopRoutes);
