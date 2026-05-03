@@ -59,19 +59,6 @@ mongoose
     dbName: "shop",
   })
   .then((result) => {
-    User.findOne().then((user) => {
-      if (!user) {
-        const user = new User({
-          name: "Jakub",
-          email: "jakub@test.com",
-          cart: {
-            items: [],
-          },
-        });
-        user.save();
-      }
-    });
-
     app.listen(3000);
   })
   .catch((err) => {
