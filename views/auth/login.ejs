@@ -7,14 +7,17 @@
    <%- include('../includes/navigation.ejs') %>
 
     <main>
+        <% if (errorMessage) { %>
+            <div class="user-message user-message--error"><%= errorMessage %></div>
+        <% } %>
         <form class="login-form" action="/login" method="POST">
             <div class="form-control">
-                <label for="title">E-mail</label>
+                <label for="email">E-Mail</label>
                 <input type="email" name="email" id="email">
             </div>
             <div class="form-control">
-                <label for="imageUrl">Password</label>
-                <input type="password" name="password" id="password" >
+                <label for="password">Password</label>
+                <input type="password" name="password" id="password">
             </div>
             <button class="btn" type="submit">Login</button>
         </form>

@@ -5,6 +5,7 @@ const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 const session = require("express-session");
 const MongoStore = require("connect-mongo").default;
+const flash = require('connect-flash');
 
 const errorController = require("./controllers/error");
 const User = require("./models/user");
@@ -36,6 +37,8 @@ app.use(
   }),
 );
 
+app.use(flash());
+
 app.use((req, res, next) => {
   if(!req.session.user) {
     return next();
@@ -46,6 +49,11 @@ app.use((req, res, next) => {
       next();
     })
     .catch((err) => console.log(err));
+});
+
+app.use((req, res, next) => {
+  res.locals.isAuthenticated = req.session.isLoggedIn;
+  next();
 });
 
 app.use("/admin", adminRoutes);
