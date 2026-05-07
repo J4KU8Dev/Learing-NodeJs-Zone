@@ -1,3 +1,6 @@
+require("dotenv").config();
+console.log("SENDGRID KEY:", process.env.SENDGRID_API_KEY);
+
 const path = require("path");
 
 const express = require("express");

@@ -4,8 +4,15 @@ const User = require("../models/user");
 const nodemailer = require("nodemailer");
 const user = require("../models/user");
 
-const tranporter = nodemailer.createTransport({
-  // configure here sendgrid app
+
+const transporter = nodemailer.createTransport({
+  host: "smtp.sendgrid.net",
+  port: 587,
+  secure: false,
+  auth: {
+    user: "apikey",
+    pass: process.env.SENDGRID_API_KEY,
+  },
 });
 
 exports.getLogin = (req, res, next) => {
@@ -74,7 +81,10 @@ exports.postSignup = (req, res, next) => {
   User.findOne({ email: email })
     .then((userDoc) => {
       if (userDoc) {
-        req.flash("error", "Email exist already. Please, pick another one.");
+        req.flash(
+          "error",
+          "E-Mail exists already, please pick a different one.",
+        );
         return res.redirect("/signup");
       }
       return bcrypt
@@ -89,6 +99,15 @@ exports.postSignup = (req, res, next) => {
         })
         .then((result) => {
           res.redirect("/login");
+          return transporter.sendMail({
+            to: email,
+            from: "nodejsshop@outlook.com",
+            subject: "Signup succeeded!",
+            html: "<h1>You successfully signed up!</h1>",
+          });
+        })
+        .catch((err) => {
+          console.log(err);
         });
     })
     .catch((err) => {
@@ -136,9 +155,9 @@ exports.postReset = (req, res, next) => {
       })
       .then((result) => {
         res.redirect("/reset");
-        tranporter.sendMail({
+        transporter.sendMail({
           to: req.body.email,
-          from: "shop@nodeJs.com",
+          from: "nodejsshop@outlook.com",
           subject: "Password Reset",
           html: `
           <p>You requested password reset</p>
