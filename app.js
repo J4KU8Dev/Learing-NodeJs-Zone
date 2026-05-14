@@ -15,7 +15,6 @@ const User = require("./models/user");
 
 const MONGODB_URI =
   "$$$";
-
 const app = express();
 
 app.set("view engine", "ejs");
