@@ -9,13 +9,24 @@ const mongoose = require("mongoose");
 const session = require("express-session");
 const MongoStore = require("connect-mongo").default;
 const flash = require("connect-flash");
+const multer = require("multer");
 
 const errorController = require("./controllers/error");
 const User = require("./models/user");
 
 const MONGODB_URI =
   "$$$";
+
 const app = express();
+
+const fileStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "images");
+  },
+  filename: (req, file, cb) => {
+    cb(null, new Date().toISOString() + "-" + file.originalname);
+  },
+});
 
 app.set("view engine", "ejs");
 app.set("views", "views");
@@ -25,7 +36,9 @@ const shopRoutes = require("./routes/shop");
 const authRoutes = require("./routes/auth");
 
 app.use(bodyParser.urlencoded({ extended: false }));
+app.use(multer({ storage: fileStorage }).single("image"));
 app.use(express.static(path.join(__dirname, "public")));
+
 app.use(
   session({
     secret: "my secret",
@@ -35,9 +48,15 @@ app.use(
       mongoUrl: MONGODB_URI,
       dbName: "shop",
       collectionName: "sessions",
+      stringify: false,
     }),
   }),
 );
+
+// app.use((req, res, next) => {
+//   console.log("SESSION:", req.session);
+//   next();
+// });
 
 app.use(flash());
 
@@ -54,7 +73,7 @@ app.use((req, res, next) => {
       next();
     })
     .catch((err) => {
-      throw new Error(err);
+      next(new Error(err));
     });
 });
 
@@ -72,8 +91,14 @@ app.get("/500", errorController.get500);
 app.use(errorController.get404);
 
 app.use((error, req, res, next) => {
-  // res.status(error.httpStatusCode).render(...)
-  res.redirect("/500");
+  // res.status(error.httpStatusCode).render(...);
+  // res.redirect('/500');
+  res.status(500).render('500', {
+    pageTitle: 'Error!',
+    path: '/500',
+    isAuthenticated: req.session.isLoggedIn
+    // ^ undefined (doesn't work!);
+  });
 });
 
 mongoose
