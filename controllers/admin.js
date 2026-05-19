@@ -1,6 +1,7 @@
 const { validationResult } = require("express-validator");
 const Product = require("../models/product");
 const { default: mongoose } = require("mongoose");
+const fileHelper = require("../util/file");
 
 exports.getAddProduct = (req, res, next) => {
   res.render("admin/edit-product", {
@@ -44,7 +45,6 @@ exports.postAddProduct = (req, res, next) => {
       hasError: true,
       product: {
         title: title,
-        imageUrl: imageUrl,
         price: price,
         description: description,
       },
@@ -124,7 +124,7 @@ exports.postEditProduct = (req, res, next) => {
   const prodId = req.body.productId;
   const updatedTitle = req.body.title;
   const updatedPrice = req.body.price;
-  const updatedImageUrl = req.body.imageUrl;
+  const image = req.file;
   const updatedDesc = req.body.description;
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -135,7 +135,6 @@ exports.postEditProduct = (req, res, next) => {
       hasError: true,
       product: {
         title: updatedTitle,
-        imageUrl: updatedImageUrl,
         price: updatedPrice,
         description: updatedDesc,
         _id: prodId,
@@ -151,8 +150,11 @@ exports.postEditProduct = (req, res, next) => {
       }
       product.title = updatedTitle;
       product.price = updatedPrice;
-      product.imageUrl = updatedImageUrl;
       product.description = updatedDesc;
+      if (image) {
+        fileHelper.deleteFile(product.imageUrl);
+        product.imageUrl = image.path;
+      }
       return product.save().then((result) => {
         console.log("Updated Product !");
         res.redirect("/admin/products");
@@ -186,7 +188,14 @@ exports.getProducts = (req, res, next) => {
 
 exports.postDeleteProduct = (req, res, next) => {
   const prodId = req.body.productId;
-  Product.deleteOne({ _id: prodId, userId: req.user._id })
+  Product.findById(prodId)
+    .then((product) => {
+      if (!product) {
+        return next(new Error("Product not found!"));
+      }
+      fileHelper.deleteFile(product.imageUrl);
+      return Product.deleteOne({ _id: prodId, userId: req.user._id });
+    })
     .then(() => {
       console.log("Product Deleted !");
       res.redirect("/admin/products");
